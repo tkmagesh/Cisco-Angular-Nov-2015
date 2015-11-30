@@ -63,6 +63,10 @@
 
     app.controller("mathCalculatorController", function($scope){
         $scope.mathCalculator = new MathCalculator();
+        $scope.operation = '';
+        $scope.calculate = function(){
+            $scope.mathCalculator[$scope.operation]();
+        }
     });
 
 
@@ -101,14 +105,14 @@
     <h1>Math Calculator</h1>
     <div class="content" ng-controller="mathCalculatorController">
         <input type="text" ng-model="mathCalculator.number1">
-        <select name="" id="">
+        <select ng-model="operation">
             <option value="add">add</option>
             <option value="subtract">subtract</option>
             <option value="multiply">multiply</option>
             <option value="divide">divide</option>
         </select>
         <input type="text" ng-model="mathCalculator.number2">
-        <input type="button" value="Calculate">
+        <input type="button" value="Calculate" ng-click="calculate()">
         <div ng-bind="mathCalculator.result">[Result]</div>
     </div>
 </body>
