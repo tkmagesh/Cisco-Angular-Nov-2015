@@ -41,8 +41,9 @@
 
         var app = angular.module('calculatorApp', []);
         app.run(function($rootScope){
+            console.log(arguments);
             $rootScope.calculator = new SalaryCalculator();
-        })
+        });
 
 
     </script>
@@ -73,7 +74,7 @@
 
         </div>
         <div class="field">
-            <div id="divResult" ng-bind="calculator.salary">[Salary]</div>
+            <div id="divResult" ng-bind="calculator.salary | currency">[Salary]</div>
         </div>
     </div>
 </body>
