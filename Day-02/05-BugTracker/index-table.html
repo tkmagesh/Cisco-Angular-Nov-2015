@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bug Tracker</title>
+    <style>
+        .closed{
+            color :red;
+            text-decoration: line-through;
+            font-style: italic;
+            font-weight: bold;
+        }
+        .stats{
+            font-weight: bold;
+            font-size: 18pt;
+        }
+        td>span{
+            cursor: pointer;
+        }
+        div{
+            margin-bottom: 10px;
+        }
+    </style>
+    <!--
+    Use Cases
+    ============
+    1. List the bugs - done
+    2. Add a new bug - done
+    3. Toggle the completion status of the bugs - done
+    4. Remove completed bugs - done
+    5. Display stats - done
+    6. Allow the user to sort the bugs - done
+    7. Allow the user to search for the bugs - done
+    8. Persist the bugs in the storage
+    9. Persist the bugs in the server
+    10. Categorize the bugs by 'Project'
+    -->
+    <script src="../lib/angular.min.js"></script>
+    <script>
+        var bugTrackerApp = angular.module("bugTrackerApp", []);
+        bugTrackerApp.controller("bugsController", function($scope){
+            $scope.bugs = [
+                {name : "Object reference not set to an instance of an object", isClosed :true},
+                {name : "Validation failure", isClosed :false},
+            ];
+            $scope.newBug = '';
+            $scope.addNew = function(){
+                var newBug = {
+                    name : $scope.newBug,
+                    isClosed : false
+                };
+                $scope.bugs.push(newBug);
+                $scope.newBug = '';
+            };
+            $scope.toggle = function(bug){
+                bug.isClosed = !bug.isClosed;
+            };
+            $scope.removeClosed = function(){
+                for(var i=$scope.bugs.length-1; i>=0 ;i--){
+                    if ($scope.bugs[i].isClosed)
+                        $scope.bugs.splice(i,1)
+                }
+            };
+            $scope.getClosedCount = function(){
+                return $scope.bugs.filter(function(bug){
+                    return bug.isClosed;
+                }).length;
+            }
+
+        });
+        bugTrackerApp.filter("trimText", function(){
+            return function(data, trimLength){
+                return data.length <= trimLength ? data : data.substr(0,trimLength) + '...';
+            };
+        });
+    </script>
+</head>
+<body ng-app="bugTrackerApp" ng-controller="bugsController">
+    <h1>Bug Tracker</h1>
+    <hr>
+    <div class="stats">
+        <span class="closed">{{getClosedCount()}}</span> / <span>{{bugs.length}}</span>
+    </div>
+    <div class="sort">
+        <label for="">Order By : </label>
+        <input type="text" ng-model="sortBy">
+        <label for="">Descending ? :</label>
+        <input type="checkbox" ng-model="sortOrder">
+    </div>
+    <div class="filter">
+        <label for="">Search By:</label>
+        <input type="text" ng-model="bugFilter.searchTerm">
+        <input type="checkbox" ng-model="bugFilter.includeClosed">
+        <label for="">Closed </label>
+        <input type="button" value="Show All" ng-click="includeClosed = undefined">
+    </div>
+    <div class="list">
+        <label for="">Bug :</label>
+        <input type="text" ng-model="newBug">
+        <input type="button" value="Add Bug" ng-click="addNew()">
+        <input type="button" value="Remove Closed" ng-click="removeClosed()">
+        <table border="1">
+           <thead>
+               <tr>
+                   <th><a href="#" ng-click="sortBy='name'; sortOrder = !sortOrder">Name</a></th>
+                   <th><a href="#" ng-click="sortBy='isClosed'; ; sortOrder = !sortOrder">IsClosed</a></th>
+                </tr>
+           </thead>
+           <tbody>
+               <tr ng-repeat="bug in bugs | filter:bugFilter | orderBy:sortBy:sortOrder">
+                   <td>
+                       <span ng-click="toggle(bug)" ng-class="{closed : bug.isClosed}">
+                           {{bug.name | trimText:50}}
+                       </span>
+                    </td>
+                   <td>{{bug.isClosed}}</td>
+               </tr>
+           </tbody>
+
+    </div>
+    <br><br>
+
+
+</body>
+</html>
