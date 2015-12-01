@@ -71,48 +71,70 @@
 
         var bugTrackerApp = angular.module("bugTrackerApp", ['utils']);
 
-       /* bugTrackerApp.value("createBug", function createBug(name, isClosed){
-            return {
-                name : name,
-                isClosed : isClosed || false,
-                toggle : function(){
-                    this.isClosed = !this.isClosed;
-                }
-            }
-        });*/
         bugTrackerApp.value('defaultTaskName', '[Default Task]');
 
         bugTrackerApp.factory("Bug", ['defaultTaskName', function getBugClass(dfn){
-            function Bug(bugData){
+            var x = function (bugData){
+                this.id = bugData.id || -1;
                 this.name = bugData.name || dfn;
                 this.isClosed = bugData.isClosed || false;
                 this.createdAt = bugData.createdAt || new Date();
             }
-            Bug.prototype.toggle = function(){
+            x.prototype.toggle = function(){
                 this.isClosed = !this.isClosed;
             }
-            return Bug;
+            return x;
         }]);
 
+        bugTrackerApp.factory('bugStorage', ['Bug', function(Bug){
+            var storage = window.localStorage;
+            var currentMaxId = 0;
+            function getAll(){
+                var result = [];
+                for(var i=0; i<storage.length; i++){
+                    var bugAsString = storage.getItem(storage.key(i));
+                    var bug = new Bug(angular.fromJson(bugAsString));
+                    result.push(bug);
+                    if (currentMaxId < bug.id) currentMaxId = bug.id;
+                }
+                return result;
+            }
+            function save(bug){
+                if (bug.id === -1){
+                    bug.id = ++currentMaxId;
+                }
+                var bugAsString = angular.toJson(bug);
+                storage.setItem(bug.id, bugAsString);
+                return bug;
+            }
+            function remove(id){
+                storage.removeItem(id);
+            }
+            return {
+                getAll : getAll,
+                save : save,
+                remove : remove
+            }
+        }]);
 
-
-        bugTrackerApp.controller("bugsController", ['$scope','Bug',function($scope, Bug){
-            $scope.bugs = [];
-            $scope.bugs.push(new Bug({ name : "Object reference not set to an instance of an object", isClosed : true, createdAt : new Date(2015,9,10)}));
-            $scope.bugs.push(new Bug({name :"Validation failure", createdAt : new Date(2015,10,10)}));
+        bugTrackerApp.controller("bugsController", ['$scope','Bug','bugStorage', function($scope, Bug, bugStorage){
+            $scope.bugs = bugStorage.getAll();
             $scope.newBug = '';
             $scope.addNew = function(){
-                var newBug = new Bug({name : $scope.newBug});
+                var newBug = bugStorage.save(new Bug({name : $scope.newBug}));
                 $scope.bugs.push(newBug);
                 $scope.newBug = '';
             };
             $scope.toggle = function(bug){
                bug.toggle();
+               bugStorage.save(bug);
             };
             $scope.removeClosed = function(){
                 for(var i=$scope.bugs.length-1; i>=0 ;i--){
-                    if ($scope.bugs[i].isClosed)
+                    if ($scope.bugs[i].isClosed){
+                        bugStorage.remove($scope.bugs[i].id)
                         $scope.bugs.splice(i,1)
+                    }
                 }
             };
 
@@ -122,9 +144,6 @@
         bugTrackerApp.filter('closedCount', ['$filter', function($filter){
             var angularFilter = $filter('filter');
             return function(bugs){
-                /*return bugs.filter(function(bug){
-                    return bug.isClosed;
-                }).length;*/
                 return angularFilter(bugs, {isClosed : true}).length;
             };
         }]);
