@@ -86,10 +86,10 @@
             return x;
         }]);
 
-        bugTrackerApp.factory('bugStorage', ['Bug', function(Bug){
+        bugTrackerApp.service('bugStorage', ['Bug', function(Bug){
             var storage = window.localStorage;
             var currentMaxId = 0;
-            function getAll(){
+            this.getAll = function getAll(){
                 var result = [];
                 for(var i=0; i<storage.length; i++){
                     var bugAsString = storage.getItem(storage.key(i));
@@ -99,7 +99,7 @@
                 }
                 return result;
             }
-            function save(bug){
+            this.save = function save(bug){
                 if (bug.id === -1){
                     bug.id = ++currentMaxId;
                 }
@@ -107,13 +107,8 @@
                 storage.setItem(bug.id, bugAsString);
                 return bug;
             }
-            function remove(id){
+            this.remove = function remove(id){
                 storage.removeItem(id);
-            }
-            return {
-                getAll : getAll,
-                save : save,
-                remove : remove
             }
         }]);
 
