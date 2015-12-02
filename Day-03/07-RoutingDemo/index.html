@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Routing Demo App</title>
+    <script src="angular.js"></script>
+    <script src="angular-route.js"></script>
+    <script>
+    var routingApp = angular.module('routingApp',['ngRoute']);
+    routingApp.config(function($routeProvider){
+        $routeProvider
+            .when("/products", {
+                //template : '<h1>Products</h1>'
+                templateUrl : 'templates/productsTemplate.html',
+                controller : 'productsController'
+            })
+            .when("/products/:id", {
+                templateUrl : 'templates/productInfoTemplate.html',
+                controller : 'productInfoController'
+            })
+            .when("/customers", {
+                //template : '<h1>Customers</h1>'
+                templateUrl : 'templates/customersTemplate.html'
+            })
+            .otherwise({
+                redirectTo : '/products'
+            });
+    });
+    routingApp.service('productsService', function(){
+        this.getAll = function(){
+            return [
+                {id :2, name : "Pen", cost : 10, units : 100, desc : "Litteris labore noster cupidatat fugiat. Quo quae ubi quae nam vidisse legam an mentitum firmissimum et nostrud aut admodum sed tamen occaecat a despicationes. Ita magna fugiat cillum senserit, litteris ne magna a sed non quis occaecat qui in nisi quibusdam instituendarum o sint offendit fidelissimae id a esse domesticarum, minim ubi admodum ab mandaremus o legam doctrina."},
+                {id :7, name : "Hen", cost : 80, units : 50, desc : "velit ne se multos arbitror, eram e vidisse. Do velit sempiternum, incurreret est ullamco sed nostrud quo multos officia, singulis sint aliquip ex fabulas a commodo iis e pariatur aut probant ea id aliqua appellat si deserunt id voluptate. Aliqua eruditionem excepteur dolor pariatur, cernantur aute se offendit exquisitaque, incididunt eram sint de dolore an possumus nam cupidatat."},
+                {id :5, name : "Ten", cost : 60, units : 20, desc : "quo dolor ingeniis deserunt. Senserit iis malis, voluptate culpa pariatur, doctrina velit consequat e fabulas ab irure commodo, sed aliquip ut cernantur, iis quorum cernantur appellat"},
+                {id :9, name : "Den", cost : 90, units : 80, desc : "E enim o magna sed occaecat legam velit laboris quid ita iis quorum singulis consequat quo est e distinguantur, hic sint duis est ullamco, non labore domesticarum si se admodum ubi doctrina non quid arbitror quibusdam. Doctrina ubi dolore vidisse"}
+            ]
+        }
+    });
+    routingApp.controller('productsController', function($scope, productsService){
+       $scope.products = productsService.getAll();
+    });
+    routingApp.controller('productInfoController', function($scope, productsService, $routeParams){
+        var id = parseInt($routeParams.id);
+        $scope.product = productsService.getAll().filter(function(product){
+            return product.id === id;
+        })[0];
+    });
+    </script>
+</head>
+<body ng-app='routingApp'>
+    <div>
+        <a href="#/products">Products</a>    <a href="#/customers">Customers</a>
+    </div>
+    <ng-view></ng-view>
+</body>
+</html>
