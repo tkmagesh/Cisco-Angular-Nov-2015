@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bug Tracker</title>
+    <style>
+        .closed{
+            color :red;
+            text-decoration: line-through;
+            font-style: italic;
+            font-weight: bold;
+        }
+        .stats{
+            font-weight: bold;
+            font-size: 18pt;
+        }
+        td>span{
+            cursor: pointer;
+        }
+        div{
+            margin-bottom: 10px;
+        }
+    </style>
+    <!--
+    Use Cases
+    ============
+    1. List the bugs - done
+    2. Add a new bug - done
+    3. Toggle the completion status of the bugs - done
+    4. Remove completed bugs - done
+    5. Display stats - done
+    6. Allow the user to sort the bugs - done
+    7. Allow the user to search for the bugs - done
+    8. Persist the bugs in the storage
+    9. Persist the bugs in the server
+    10. Categorize the bugs by 'Project'
+
+
+    window.localStorage
+    ===================
+        - key/value store
+        - key & value - strings
+
+        * setItem(key, value)
+        * getItem(key) => value
+        * removeItem(key)
+        * clear()
+        * key(index) => key
+        * length
+
+        using angular.toJson() and angular.fromJson() for object serialization and deserialization vice versa..
+    -->
+    <script src="lib/angular.min.js"></script>
+    <script src="lib/moment.js"></script>
+
+    <script>
+        var utils = angular.module('utils',[]);
+        utils.value("defaultTrimLength", 30)
+        utils.filter("trimText", function(defaultTrimLength){
+            return function(data, trimLength){
+                trimLength = trimLength || defaultTrimLength;
+                return data.length <= trimLength ? data : data.substr(0,trimLength) + '...';
+            };
+        });
+        utils.value("momentApi", moment);
+        utils.filter('toMoment', function(momentApi){
+            return function(data){
+                return momentApi(data).fromNow();
+            }
+        });
+
+        var bugTrackerApp = angular.module("bugTrackerApp", ['utils']);
+
+       /* bugTrackerApp.value("createBug", function createBug(name, isClosed){
+            return {
+                name : name,
+                isClosed : isClosed || false,
+                toggle : function(){
+                    this.isClosed = !this.isClosed;
+                }
+            }
+        });*/
+        bugTrackerApp.value('defaultTaskName', '[Default Task]');
+
+        bugTrackerApp.factory("Bug", ['defaultTaskName', function getBugClass(dfn){
+            function Bug(bugData){
+                this.name = bugData.name || dfn;
+                this.isClosed = bugData.isClosed || false;
+                this.createdAt = bugData.createdAt || new Date();
+            }
+            Bug.prototype.toggle = function(){
+                this.isClosed = !this.isClosed;
+            }
+            return Bug;
+        }]);
+
+
+
+        bugTrackerApp.controller("bugsController", ['$scope','Bug',function($scope, Bug){
+            $scope.bugs = [];
+            $scope.bugs.push(new Bug({ name : "Object reference not set to an instance of an object", isClosed : true, createdAt : new Date(2015,9,10)}));
+            $scope.bugs.push(new Bug({name :"Validation failure", createdAt : new Date(2015,10,10)}));
+            $scope.newBug = '';
+            $scope.addNew = function(){
+                var newBug = new Bug({name : $scope.newBug});
+                $scope.bugs.push(newBug);
+                $scope.newBug = '';
+            };
+            $scope.toggle = function(bug){
+               bug.toggle();
+            };
+            $scope.removeClosed = function(){
+                for(var i=$scope.bugs.length-1; i>=0 ;i--){
+                    if ($scope.bugs[i].isClosed)
+                        $scope.bugs.splice(i,1)
+                }
+            };
+
+
+        }]);
+
+        bugTrackerApp.filter('closedCount', ['$filter', function($filter){
+            var angularFilter = $filter('filter');
+            return function(bugs){
+                /*return bugs.filter(function(bug){
+                    return bug.isClosed;
+                }).length;*/
+                return angularFilter(bugs, {isClosed : true}).length;
+            };
+        }]);
+
+
+    </script>
+</head>
+<body ng-app="bugTrackerApp" ng-controller="bugsController">
+    <h1>Bug Tracker</h1>
+    <hr>
+    <div class="stats">
+        <!--<span class="closed">{{bugs | closedCount}}</span> / <span>{{bugs.length}}</span>-->
+        <span class="closed">{{  (bugs | filter:{isClosed : true}).length  }}</span> / <span>{{bugs.length}}</span>
+    </div>
+    <div class="sort">
+        <label for="">Order By : </label>
+        <input type="text" ng-model="sortBy">
+        <label for="">Descending ? :</label>
+        <input type="checkbox" ng-model="sortOrder">
+    </div>
+    <div class="filter">
+        <label for="">Search By:</label>
+        <input type="text" ng-model="bugFilter.searchTerm">
+        <input type="checkbox" ng-model="bugFilter.includeClosed">
+        <label for="">Closed </label>
+        <input type="button" value="Show All" ng-click="includeClosed = undefined">
+    </div>
+    <div class="list">
+        <label for="">Bug :</label>
+        <input type="text" ng-model="newBug">
+        <input type="button" value="Add Bug" ng-click="addNew()">
+        <input type="button" value="Remove Closed" ng-click="removeClosed()">
+        <table border="1">
+           <thead>
+               <tr>
+                   <th><a href="#" ng-click="sortBy='name'; sortOrder = !sortOrder">Name</a></th>
+                   <th><a href="#" ng-click="sortBy='isClosed'; ; sortOrder = !sortOrder">IsClosed</a></th>
+                   <th><a href="#" ng-click="sortBy='createdAt'; ; sortOrder = !sortOrder">Created At</a></th>
+                </tr>
+           </thead>
+           <tbody>
+               <tr ng-repeat="bug in bugs | filter:bugFilter | orderBy:sortBy:sortOrder">
+                   <td>
+                       <span ng-click="toggle(bug)" ng-class="{closed : bug.isClosed}">
+                           {{bug.name | trimText:50}}
+                       </span>
+                    </td>
+                   <td>{{bug.isClosed}}</td>
+                   <td>{{bug.createdAt | toMoment}}</td>
+               </tr>
+           </tbody>
+
+    </div>
+    <br><br>
+
+
+</body>
+</html>

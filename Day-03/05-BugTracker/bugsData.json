@@ -1,0 +1,28 @@
+{
+  "appBugs": [
+    {
+      "id": 1,
+      "name": "stack overflow error",
+      "isClosed": false,
+      "createdAt": "2015-09-20T04:56:26.384Z"
+    },
+    {
+      "id": 2,
+      "name": "server communication failure",
+      "isClosed": false,
+      "createdAt": "2015-10-20T04:56:26.384Z"
+    },
+    {
+      "id": 3,
+      "name": "data validation failure",
+      "isClosed": false,
+      "createdAt": "2015-11-20T04:56:26.384Z"
+    },
+    {
+      "name": "User authentication failure for all the users",
+      "isClosed": false,
+      "createdAt": "2015-11-25T04:56:26.384Z",
+      "id": 4
+    }
+  ]
+}
